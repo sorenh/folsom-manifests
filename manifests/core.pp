@@ -13,7 +13,7 @@ class { 'openstack::test_file': }
 # Load apt prerequisites.  This is only valid on Ubuntu systmes
 
 apt::source { "cisco-openstack-mirror_folsom-proposed":
-	location => "ftp://ftpeng.cisco.com/openstack/cisco/",
+	location => "http://192.168.26.163/openstack/cisco/",
 	release => "folsom-proposed",
 	repos => "main",
 	key => "E8CC67053ED3B199",
@@ -21,11 +21,6 @@ apt::source { "cisco-openstack-mirror_folsom-proposed":
 	proxy => $::proxy,
 }
 
-
-# /etc/hosts entries for the controller nodes
-host { $::controller_hostname:
-  ip => $::controller_node_internal
-}
 ####
 # Active and passive nodes are mostly configured identically.
 # There are only two places where the configuration is different:
@@ -102,7 +97,7 @@ class { 'collectd':
     quantum_db_name        	 => 'quantum',
     quantum_db_user          	 => 'quantum',
     quantum_db_host          	 => $controller_node_address,
-    quantum_db_allowed_hosts 	 => ['localhost','172.29.74.%'],
+    quantum_db_allowed_hosts 	 => ['localhost','192.168.25.%'],
     quantum_db_charset       	 => 'latin1',
     quantum_db_cluster_id    	 => 'localzone',
     quantum_email              	 => "quantum@${controller_node_address}",
@@ -132,7 +127,7 @@ class { 'collectd':
 }
 
 
-node /compute0/ inherits "base" {
+node /compute/ inherits "base" {
 
   class { 'openstack::auth_file':
     admin_password       => $admin_password,
@@ -175,7 +170,7 @@ class { 'collectd':
     host        	 		=> 'compute',
     #quantum general
     quantum_log_verbose          	=> "False",
-    quantum_log_debug            	=> false,
+    quantum_log_debug            	=> "False",
     quantum_bind_host            	=> "0.0.0.0",
     quantum_bind_port            	=> "9696",
     quantum_sql_connection       	=> "mysql://quantum:quantum@${controller_node_address}/quantum",
@@ -213,8 +208,8 @@ class { 'collectd':
 # Definition of this node should match the name assigned to the build node in your deployment.
 # In this example we are using build-node, you dont need to use the FQDN. 
 #
-node /build-node/ inherits "cobbler-node" {
-
+node /default/ inherits "cobbler-node" {
+if $::fqdn == $::build_node_fqdn { 
 # Change the servers for your NTP environment
 # (Must be a reachable NTP Server by your build-node, i.e. ntp.esl.cisco.com)
 class { ntp:
@@ -281,5 +276,5 @@ class { puppet:
 #  allow 192.168.0.0/24
 ',
   }
-
+}
 }

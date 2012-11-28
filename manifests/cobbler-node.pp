@@ -10,14 +10,15 @@ node /cobbler-node/ inherits "base" {
 # the same one for power-strip based power control, per-node for IPMI/CIMC/ILO based control, power-ID needs to map to power port or
 # service profile name (in UCSM based deployements)
 
-cobbler::node { "p5-control01":
- mac => "A4:4C:11:13:98:4F",
- ip => "172.29.74.194",
+cobbler::node { "control":
+ mac => "00:25:B5:00:05:AF",
+ ip => "192.168.25.10",
  ### UCS CIMC Details ###
- power_address => "172.29.74.170",
+ power_address => "192.168.26.18:org-SUBORGNAME",
  power_user => "admin",
  power_password => "password",
- power_type => "ipmitool",
+ power_type => "ucs",
+ power_id => "SERVICEPROFILENAME-3",
  ### Advanced Users Configuration ###
  profile => "precise-x86_64-auto",
  domain => $::domain_name,
@@ -26,14 +27,31 @@ cobbler::node { "p5-control01":
  }
 
 
-cobbler::node { "p5-compute01":
- mac => "A4:4C:11:13:56:74",
- ip => "172.29.74.197",
+cobbler::node { "compute01":
+ mac => "00:25:B5:00:05:8F",
+ ip => "192.168.25.21",
  ### UCS CIMC Details ###
- power_address => "172.29.74.173",
+ power_address => "192.168.26.18:org-SUBORGNAME",
  power_user => "admin",
  power_password => "password",
- power_type => "ipmitool",
+ power_type => "ucs",
+ power_id => "SERVICEPROFILENAME-4",
+ ### Advanced Users Confirgaution ###
+ profile => "precise-x86_64-auto",
+ domain => $::domain_name,
+ node_type => "compute",
+ preseed => "cisco-preseed",
+ }
+
+cobbler::node { "compute02":
+ mac => "00:25:B5:00:05:7F",
+ ip => "192.168.25.22",
+ ### UCS CIMC Details ###
+ power_address => "192.168.26.18:org-SUBORGNAME",
+ power_user => "admin",
+ power_password => "password",
+ power_type => "ucs",
+ power_id => "SERVICEPROFILENAME-5",
  ### Advanced Users Confirgaution ###
  profile => "precise-x86_64-auto",
  domain => $::domain_name,
@@ -46,12 +64,6 @@ cobbler::node { "p5-compute01":
 ###### Nothing needs to be manually edited from this point ######
 
 
-####### Shared Variables from Site.pp #######
-$cobbler_node_ip = $::build_node_fqdn
-$BUILD-NODE = $::build_node_fqdn
-$ETHER_VLAN = $::private_interface
-$ETHERNET = $::public_interface
-
 ####### Preseed File Configuration #######
  cobbler::ubuntu::preseed { "cisco-preseed":
   admin_user => $::admin_user,
@@ -60,22 +72,22 @@ $ETHERNET = $::public_interface
   ntp_server => $::build_node_fqdn,
 late_command => "
 sed -e '/logdir/ a pluginsync=true' -i /target/etc/puppet/puppet.conf ; \
-sed -e \"/logdir/ a server=$BUILD-NODE\" -i /target/etc/puppet/puppet.conf ; \
+sed -e \"/logdir/ a server=$::build_node_fqdn\" -i /target/etc/puppet/puppet.conf ; \
 sed -e 's/START=no/START=yes/' -i /target/etc/default/puppet ; \
-echo -e \"server $BUILD-NODE iburst\" > /target/etc/ntp.conf ; \
+echo -e \"server $::build_node_fqdn iburst\" > /target/etc/ntp.conf ; \
 echo '8021q' >> /target/etc/modules ; \
 echo \"# Private Interface\" >> /target/etc/network/interfaces ;\
-echo \"auto $ETHER_VLAN\" >> /target/etc/network/interfaces ;\
-echo \"iface $ETHER_VLAN inet manual\" >> /target/etc/network/interfaces ;\
-echo \"      vlan-raw-device $ETHERNET\" >> /target/etc/network/interfaces ;\
-echo \"      up ifconfig $ETHER_VLAN 0.0.0.0 up\" >> /target/etc/network/interfaces ; \
+echo \"auto $::private_interface\" >> /target/etc/network/interfaces ;\
+echo \"iface $::private_interface inet manual\" >> /target/etc/network/interfaces ;\
+echo \"      vlan-raw-device $::public_interface\" >> /target/etc/network/interfaces ;\
+echo \"      up ifconfig $::private_interface 0.0.0.0 up\" >> /target/etc/network/interfaces ; \
 echo \" \" >> /target/etc/network/interfaces ; \
 true
 ",
-  proxy => "http://${cobbler_node_ip}:3142/",
+  proxy => "http://${build_node_fqdn}:3142/",
   expert_disk => true,
-  diskpart => ['/dev/sdc'],
-  boot_disk => '/dev/sdc',
+  diskpart => ["$::node_boot_disk"],
+  boot_disk => "$::node_boot_disk",
  }
 
 
