@@ -62,7 +62,7 @@ $password_crypted 	= '{{ config.admin_password_crypted }}'
 # OpenStack control node
 $controller_node_address       = '{{ job.control_node.ip }}'
 $controller_node_network       = '{{ config.subnet }}'
-$controller_hostname           = '{{ job.control_node.fqdn }}'
+$controller_hostname           = '{{ job.control_node.name }}'
 # Specify the network which should have access to the MySQL database on the OpenStack control
 # node. Typically, this will be the same network as defined in the controller_node_network
 # parameter above. Use MySQL network wild card syntax to specify the desired network.
