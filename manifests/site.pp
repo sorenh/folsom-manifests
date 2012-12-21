@@ -12,7 +12,7 @@ $proxy			= "{{ config.proxy }}"
 
 ########### Build Node (Cobbler, Puppet Master, NTP) ######
 # Change the following to the host name you have given your build node
-$build_node_name        = "{{ job.build_node.fqdn }}"
+$build_node_name        = "{{ job.build_node.name }}"
 
 ########### NTP Configuration ############
 # Change this to the location of a time server in your organization accessible to the build server
