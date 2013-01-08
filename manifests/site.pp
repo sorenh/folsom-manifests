@@ -10,6 +10,12 @@
 $proxy			= "{{ config.proxy }}"
 #{% endif %}
 
+# If you are behind a proxy you may choose not to use our ftp distribution, and
+# instead try our http distribution location. Note the http location is not
+# a permanent location and may change at any time.
+$location 		= "ftp://ftpeng.cisco.com/openstack/cisco"
+# Alternate, uncomment this one, and coment out the one above
+#$location		= "http://128.107.252.163/openstack/cisco"
 ########### Build Node (Cobbler, Puppet Master, NTP) ######
 # Change the following to the host name you have given your build node
 $build_node_name        = "{{ job.build_node.name }}"
@@ -108,7 +114,7 @@ $admin_email             = 'root@localhost'
 $admin_password          = 'Cisco123'
 $keystone_db_password    = 'keystone_db_pass'
 $keystone_admin_token    = 'keystone_admin_token'
-$nova_user		       = 'nova'
+$nova_user		 = 'nova'
 $nova_db_password        = 'nova_pass'
 $nova_user_password      = 'nova_pass'
 $glance_db_password      = 'glance_pass'
@@ -141,21 +147,21 @@ $verbose                 = false
 # multiple block types here.
 define cobbler_node($node_type, $mac, $ip, $power_address, $power_user, $power_password, $power_type, $power_id) {
   cobbler::node { $name:
-    mac 		 => $mac,
-    ip 		 => $ip,
+    mac 	   => $mac,
+    ip 		   => $ip,
     ### UCS CIMC Details ###
     # Change these parameters to match the management console settings for your server
     power_address  => $power_address,
-    power_user 	 => $power_user,
+    power_user 	   => $power_user,
     power_password => $power_password,
     power_type     => $power_type,
     power_id       => $power_id,
     ### Advanced Users Configuration ###
     # These parameters typically should not be changed
-    profile 	 => "precise-x86_64-auto",
+    profile 	   => "{{ job.description.ubuntu_series }}-x86_64-auto",
     domain         => $::domain_name,
-    node_type 	 => $node_type,
-    preseed 	 => "cisco-preseed",
+    node_type 	   => $node_type,
+    preseed 	   => "cisco-preseed",
   }
 }
 
